@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  # Docker-in-Docker (DinD) container
+  dind:
+    image: docker:dind
+    container_name: dind
+    privileged: true  # Allows DinD to run Docker commands inside the container
+    networks:
+      - jenkins
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - docker-certs-ca:/certs/ca
+      - docker-certs-client:/certs/client
+
+  # Jenkins container that will use DinD
+  jenkins:
+    image: jenkins/jenkins:lts-jdk11
+    container_name: jenkins
+    networks:
+      - jenkins
+    ports:
+      - "8080:8080"  # Jenkins UI port
+      - "50000:50000" # Jenkins agent communication port
+    environment:
+      - DOCKER_HOST=tcp://dind:2376  # Link Jenkins to the DinD container via TCP
+      - DOCKER_CERT_PATH=/certs/client
+      - DOCKER_TLS_VERIFY=1  # Enable TLS for secure communication with DinD
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - docker-certs-client:/certs/client:ro
+      - /usr/bin/docker:/usr/bin/docker  # Mount Docker binary for Jenkins to use
+
+networks:
+  jenkins:
+    driver: bridge  # Define the network
+
+volumes:
+  jenkins-data:  # Persistent storage for Jenkins
+  docker-certs-ca:  # Volume for Docker certificates
+  docker-certs-client:  # Volume for Docker client certificates
