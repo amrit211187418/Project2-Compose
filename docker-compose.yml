@@ -5,7 +5,7 @@ services:
   dind:
     image: docker:dind
     container_name: dind
-    privileged: true  # Allows DinD to run Docker commands inside the container
+    privileged: true
     networks:
       - jenkins
     environment:
@@ -22,22 +22,22 @@ services:
     networks:
       - jenkins
     ports:
-      - "8080:8080"  # Jenkins UI port
-      - "50000:50000" # Jenkins agent communication port
+      - "8080:8080" 
+      - "50000:50000"
     environment:
-      - DOCKER_HOST=tcp://dind:2376  # Link Jenkins to the DinD container via TCP
+      - DOCKER_HOST=tcp://dind:2376
       - DOCKER_CERT_PATH=/certs/client
-      - DOCKER_TLS_VERIFY=1  # Enable TLS for secure communication with DinD
+      - DOCKER_TLS_VERIFY=1
     volumes:
       - jenkins-data:/var/jenkins_home
       - docker-certs-client:/certs/client:ro
-      - /usr/bin/docker:/usr/bin/docker  # Mount Docker binary for Jenkins to use
+      - /usr/bin/docker:/usr/bin/docker 
 
 networks:
   jenkins:
-    driver: bridge  # Define the network
+    driver: bridge
 
 volumes:
-  jenkins-data:  # Persistent storage for Jenkins
-  docker-certs-ca:  # Volume for Docker certificates
-  docker-certs-client:  # Volume for Docker client certificates
+  jenkins-data:
+  docker-certs-ca: 
+  docker-certs-client:
